@@ -1,0 +1,21 @@
+{
+  "name": "wantp/reliable-queue",
+  "description": "reliable queue",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "zhangrongwang",
+      "email": "zhangrongwang798@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=7.0.0",
+    "php-amqplib/php-amqplib": "^2.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "Wantp\\ReliableQueue\\": "src/"
+    }
+  }
+}
