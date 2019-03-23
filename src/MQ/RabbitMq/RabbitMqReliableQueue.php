@@ -352,7 +352,7 @@ class RabbitMqReliableQueue implements ReliableQueueInterface
             } else {
                 $res = call_user_func($handler, $msg);
             }
-            if (!$res) {
+            if (true !== $res) {
                 if (self::PUBLISH_FAIL_MSG_FLAG == $this->publishRetryMsg($msg) && !is_null($failHandler)) {
                     $failHandler($msg);
                 }

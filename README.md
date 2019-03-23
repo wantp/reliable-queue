@@ -31,12 +31,6 @@ $retryInterval = []; //表示不重试
 当不能再重试时，失败消息会进入失败队列，等待失败处理程序或人工介入处理
 ```
 
->怎么重试
-```
-//当处理失败时,调用方法
-ReliableQueue::publishRetryMsg($msg);
-//程序会根据是否可以重试推送到重试或者失败队列里,此方法会返回FLAG,帮助用户可以根据不同阶段做不同处理
-```
 
 ##### 可靠队列示例
 
@@ -92,35 +86,24 @@ $retryInterval = [10, 20, 60, 120];
 
 $reliableQueue = new \Wantp\ReliableQueue\ReliableQueue($rabbitMqConfig, $module, $retryInterval);
 
-//消费回调函数
-$callback = function ($msg) use ($reliableQueue) {
-    if (!_handler($msg)) {
-        //处理失败推送到重试队列
-        $reliableQueue->publishRetryMsg($msg);
-    }
-    //ACK
-    $channel = $reliableQueue->getMq()->getChannel();
-    $channel->basic_ack($msg->delivery_info['delivery_tag']);
-};
-
-$channel = $reliableQueue->getMq()->getChannel();
-
-//消费消息
-$channel->basic_consume($reliableQueue->getNormalQueue(), '', false, false, false, false, $callback);
-//柱塞消费
-while (count($channel->callbacks)) {
-    $channel->wait();
-}
-//关闭channel
-$channel->close();
+$reliableQueue->consume('_handler','_failHandler');
 
 function _handler(\PhpAmqpLib\Message\AMQPMessage $msg)
 {
+    //消费队列时会调用此方法,处理成功必须返回true
     $data = json_decode($msg->getBody(), true);
     if (((int)$data['index']) % 2 == 0) {
         return true;
     }
     return false;
 }
+
+function _failHandler(\PhpAmqpLib\Message\AMQPMessage $msg)
+{
+    //进入失败队列后会调用此方法
+    logFail();
+}
 ```
+
+##### examples中提供了一些使用示例，以供参考
 
