@@ -335,4 +335,38 @@ class RabbitMqReliableQueue implements ReliableQueueInterface
     {
         return $this->channel;
     }
+
+    /**
+     * Notes:consume
+     * @author  zhangrongwang
+     * @date 2019-03-23 16:56:11
+     * @param array|callable $handler
+     * @param array|callable|null $failHandler
+     * @throws \ErrorException
+     */
+    public function consume($handler, $failHandler = null)
+    {
+        $callback = function ($msg) use ($handler, $failHandler) {
+            if (is_callable($handler)) {
+                $res = $handler($msg);
+            } else {
+                $res = call_user_func($handler, $msg);
+            }
+            if (!$res) {
+                if (self::PUBLISH_FAIL_MSG_FLAG == $this->publishRetryMsg($msg) && !is_null($failHandler)) {
+                    $failHandler($msg);
+                }
+            }
+            //ACK
+            $this->channel->basic_ack($msg->delivery_info['delivery_tag']);
+        };
+
+        $this->channel->basic_qos(null, 1, null);
+
+        $this->channel->basic_consume($this->getNormalQueue(), '', false, false, false, false, $callback);
+        while (count($this->channel->callbacks)) {
+            $this->channel->wait();
+        }
+        $this->channel->close();
+    }
 }

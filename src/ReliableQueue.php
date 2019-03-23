@@ -198,4 +198,17 @@ class ReliableQueue implements ReliableQueueInterface
         return $this->mq->getMaxRetryTimes();
     }
 
+    /**
+     * Notes:consume
+     * @author  zhangrongwang
+     * @date 2019-03-23 17:00:49
+     * @param array|callable $handler
+     * @param array|callable|null $failHandler
+     * @throws \ErrorException
+     */
+    public function consume($handler, $failHandler = null)
+    {
+        $this->mq->consume($handler, $failHandler);
+    }
+
 }
